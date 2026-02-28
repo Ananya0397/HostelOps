@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>HostelOps Dashboard</title>
+
+<style>
+
+body{
+ margin:0;
+ font-family:Segoe UI;
+ background:#f3f4f6;
+}
+
+.navbar{
+ background:#1f2937;
+ color:white;
+ padding:15px 25px;
+ display:flex;
+ justify-content:space-between;
+}
+
+.container{
+ max-width:900px;
+ margin:auto;
+ padding:30px;
+}
+
+.card{
+ background:white;
+ padding:20px;
+ border-radius:10px;
+ box-shadow:0 4px 10px rgba(0,0,0,0.1);
+ margin-bottom:20px;
+}
+
+input,select{
+ width:100%;
+ padding:10px;
+ margin-bottom:10px;
+}
+
+button{
+ background:#2563eb;
+ color:white;
+ border:none;
+ padding:10px;
+ border-radius:6px;
+ cursor:pointer;
+}
+
+.complaint{
+ background:#f9fafb;
+ padding:10px;
+ margin-top:10px;
+ border-radius:6px;
+ display:flex;
+ justify-content:space-between;
+}
+
+.badge{
+ background:#f59e0b;
+ color:white;
+ padding:4px 10px;
+ border-radius:20px;
+ font-size:12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+🏨 HostelOps Dashboard
+<button onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+<div class="card">
+<h3>Submit Complaint</h3>
+
+<input id="title" placeholder="Enter complaint">
+
+<select id="category">
+<option>Electrical</option>
+<option>Plumbing</option>
+<option>Cleaning</option>
+</select>
+
+<select id="priority">
+<option>Low</option>
+<option>Medium</option>
+<option>High</option>
+</select>
+
+<button onclick="submitComplaint()">Submit</button>
+
+<hr>
+
+<select onchange="filterComplaints(this.value)">
+<option value="all">All Complaints</option>
+<option value="Pending">Pending</option>
+<option value="Resolved">Resolved</option>
+</select>
+
+</div>
+
+<div class="card" id="studentSection">
+<h3>Submit Complaint</h3>
+<div id="list"></div>
+</div>
+
+</div>
+
+<script>
+const role = localStorage.getItem("role");
+
+if(!localStorage.getItem("login")){
+ window.location="index.html";
+}
+if(!localStorage.getItem("login")){
+ window.location="index.html";
+}
+function applyRoleAccess(){
+
+ if(role==="admin"){
+   document.getElementById("studentSection").style.display="none";
+ }
+}
+function logout(){
+ localStorage.removeItem("login");
+ window.location="index.html";
+}
+
+let allComplaints=[];
+
+async function submitComplaint(){
+
+ await fetch("/api/complaints",{
+  method:"POST",
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+   title:title.value,
+   category:category.value,
+   priority:priority.value
+  })
+ });
+
+ title.value="";
+ loadComplaints();
+}
+
+async function loadComplaints(){
+
+ const res = await fetch("/api/complaints");
+ allComplaints = await res.json();
+
+ render(allComplaints);
+}
+
+function render(data){
+
+ let html="";
+
+ data.forEach(c=>{
+
+ html+=`
+ <div class="complaint">
+   <div>
+     <b>${c.title}</b><br>
+     Category: ${c.category} |
+     Priority: ${c.priority}
+   </div>
+
+   <div>
+     <span class="badge">${c.status}</span>
+     ${
+       localStorage.getItem("role")==="admin"
+       ? `<button onclick="resolveComplaint(${c.id})">Resolve</button>`
+       : ``
+     }
+   </div>
+ </div>`;
+ });
+
+ list.innerHTML=html;
+}
+
+function filterComplaints(status){
+
+ if(status==="all")
+   render(allComplaints);
+ else
+   render(allComplaints.filter(c=>c.status===status));
+}
+
+async function resolveComplaint(id){
+
+ await fetch("/api/complaints/"+id,{
+   method:"PUT"
+ });
+
+ loadComplaints();
+}
+
+applyRoleAccess();
+loadComplaints();
+
+</script>
+
+</body>
+</html>

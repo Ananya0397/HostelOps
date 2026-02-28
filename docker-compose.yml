@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+
+  backend:
+    build: ./backend
+    container_name: hostel_backend
+
+  frontend:
+    build: ./frontend
+    container_name: hostel_frontend
+
+  nginx:
+    image: nginx
+    container_name: hostel_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend

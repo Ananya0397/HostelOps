@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+
+<style>
+
+body{
+ margin:0;
+ font-family:Segoe UI;
+ background:#f4f6f9;
+}
+
+.navbar{
+ background:#111827;
+ color:white;
+ padding:15px 25px;
+ display:flex;
+ justify-content:space-between;
+}
+
+.container{
+ max-width:1000px;
+ margin:auto;
+ padding:30px;
+}
+
+.card{
+ background:white;
+ padding:20px;
+ border-radius:10px;
+ box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+.complaint{
+ display:flex;
+ justify-content:space-between;
+ background:#f9fafb;
+ padding:12px;
+ margin-top:10px;
+ border-radius:6px;
+}
+
+.badge{
+ padding:4px 10px;
+ border-radius:20px;
+ color:white;
+ font-size:12px;
+}
+
+.pending{ background:#f59e0b; }
+.resolved{ background:#10b981; }
+
+button{
+ background:#2563eb;
+ color:white;
+ border:none;
+ padding:6px 12px;
+ border-radius:6px;
+ cursor:pointer;
+}
+
+select{
+ padding:8px;
+ margin-bottom:15px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+👩‍💼 Admin Dashboard
+<button onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+<div class="card">
+
+<h3>All Complaints</h3>
+
+<select onchange="filter(this.value)">
+<option value="all">All</option>
+<option value="Pending">Pending</option>
+<option value="Resolved">Resolved</option>
+</select>
+
+<div id="list"></div>
+
+</div>
+
+</div>
+
+<script>
+
+if(localStorage.getItem("role")!=="admin")
+ location="index.html";
+
+function logout(){
+ localStorage.clear();
+ location="index.html";
+}
+
+let all=[];
+
+async function load(){
+
+ const res=await fetch("/api/complaints");
+ all=await res.json();
+ render(all);
+}
+
+function render(data){
+
+ let html="";
+
+ data.forEach(c=>{
+
+ const statusClass =
+   c.status==="Resolved" ? "resolved":"pending";
+
+ html+=`
+ <div class="complaint">
+   <div>
+     <b>${c.title}</b><br>
+     ${c.category} | ${c.priority}
+   </div>
+
+   <div>
+     <span class="badge ${statusClass}">
+       ${c.status}
+     </span>
+     ${
+       c.status==="Pending"
+       ? `<button onclick="resolve(${c.id})">Resolve</button>`
+       : ""
+     }
+   </div>
+ </div>`;
+ });
+
+ list.innerHTML=html;
+}
+
+function filter(status){
+ if(status==="all") render(all);
+ else render(all.filter(c=>c.status===status));
+}
+
+async function resolve(id){
+
+ await fetch("/api/complaints/"+id,{
+   method:"PUT"
+ });
+
+ load();
+}
+
+load();
+
+</script>
+
+</body>
+</html>

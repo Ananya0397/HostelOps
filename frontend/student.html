@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Student Dashboard</title>
+
+<style>
+
+body{
+ margin:0;
+ font-family:Segoe UI;
+ background:#f4f6f9;
+}
+
+.navbar{
+ background:#1f2937;
+ color:white;
+ padding:15px 25px;
+ display:flex;
+ justify-content:space-between;
+}
+
+.container{
+ max-width:900px;
+ margin:auto;
+ padding:30px;
+}
+
+.card{
+ background:white;
+ padding:20px;
+ border-radius:10px;
+ box-shadow:0 4px 12px rgba(0,0,0,0.1);
+ margin-bottom:20px;
+}
+
+input,select{
+ width:100%;
+ padding:10px;
+ margin:10px 0;
+ border-radius:6px;
+ border:1px solid #ccc;
+}
+
+button{
+ background:#2563eb;
+ color:white;
+ border:none;
+ padding:10px 15px;
+ border-radius:6px;
+ cursor:pointer;
+}
+
+.complaint{
+ display:flex;
+ justify-content:space-between;
+ background:#f9fafb;
+ padding:10px;
+ margin-top:10px;
+ border-radius:6px;
+}
+
+.badge{
+ padding:4px 10px;
+ border-radius:20px;
+ color:white;
+ font-size:12px;
+}
+
+.pending{ background:#f59e0b; }
+.resolved{ background:#10b981; }
+
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+👨‍🎓 Student Dashboard
+<button onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+<div class="card">
+<h3>Submit Complaint</h3>
+
+<input id="title" placeholder="Describe issue">
+
+<select id="category">
+<option disabled selected>Select Complaint Type</option>
+<option>Electrical ⚡</option>
+<option>Plumbing 🚿</option>
+<option>Cleaning 🧹</option>
+<option>Food / Mess 🍽</option>
+</select>
+
+
+<select id="priority">
+<option>Low</option>
+<option>Medium</option>
+<option>High</option>
+</select>
+
+<button onclick="submitComplaint()">Submit</button>
+
+</div>
+
+<div class="card">
+<h3>Your Complaints</h3>
+<div id="list"></div>
+</div>
+
+</div>
+
+<script>
+    async function submitFood(){
+
+ await fetch("/api/complaints",{
+  method:"POST",
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+   title:foodIssue.value,
+   category:"Food / Mess",
+   priority:"Medium"
+  })
+ });
+
+ foodIssue.value="";
+ load();
+}
+
+if(localStorage.getItem("role")!=="student")
+ location="index.html";
+
+function logout(){
+ localStorage.clear();
+ location="index.html";
+}
+
+async function submitComplaint(){
+
+ await fetch("/api/complaints",{
+  method:"POST",
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+   title:title.value,
+   category:category.value,
+   priority:priority.value
+  })
+ });
+
+ load();
+}
+
+async function load(){
+
+ const res=await fetch("/api/complaints");
+ const data=await res.json();
+
+ let html="";
+
+ data.forEach(c=>{
+
+ const statusClass =
+   c.status==="Resolved" ? "resolved" : "pending";
+
+ html+=`
+ <div class="complaint">
+   <div>
+     <b>${c.title}</b><br>
+     ${c.category} | ${c.priority}
+   </div>
+   <span class="badge ${statusClass}">
+     ${c.status}
+   </span>
+ </div>`;
+ });
+
+ list.innerHTML=html;
+}
+
+load();
+
+</script>
+
+</body>
+</html>
