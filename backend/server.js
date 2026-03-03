@@ -6,14 +6,29 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let users = [];
+let users = [
+ { 
+   username: "admin",
+   password: "admin123",
+   role: "admin"
+ }
+];
 let complaints = [];
 
 /* ---------------- LOGIN / REGISTER ---------------- */
 
 app.post("/api/register",(req,res)=>{
- users.push(req.body);
- res.json({message:"Registered"});
+
+ const { username, password } = req.body;
+
+ // Students only
+ users.push({
+   username,
+   password,
+   role: "student"
+ });
+
+ res.json({message:"Student Registered"});
 });
 
 app.post("/api/login",(req,res)=>{
